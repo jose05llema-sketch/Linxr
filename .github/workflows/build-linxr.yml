@@ -22,26 +22,20 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.x"
+          flutter-version: "3.24.0"
           channel: "stable"
 
-      - name: Enable Android SDK
-        run: |
-          flutter --version
-          flutter config --android-sdk $ANDROID_HOME
-          flutter doctor
-
       - name: Accept Android licenses
-        run: |
-          yes | flutter doctor --android-licenses
+        run: yes | flutter doctor --android-licenses
+
+      - name: Get dependencies
+        run: flutter pub get
 
       - name: Build APK
-        run: |
-          chmod +x scripts/build_apk.sh
-          bash scripts/build_apk.sh debug
+        run: flutter build apk --debug
 
-      - name: Upload APK artifact
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: linxr-debug-apk
-          path: build/linxr-debug.apk
+          path: build/app/outputs/flutter-apk/app-debug.apk
