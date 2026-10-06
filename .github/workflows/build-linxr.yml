@@ -57,6 +57,26 @@ jobs:
 
           gh release download qemu-android-linxr-1 \
             --repo "${{ github.repository }}" \
+            --pattern "libq_fdt.so" \
+            --dir android/app/src/main/jniLibs/arm64-v8a
+
+          gh release download qemu-android-linxr-1 \
+            --repo "${{ github.repository }}" \
+            --pattern "libq_z.so" \
+            --dir android/app/src/main/jniLibs/arm64-v8a
+
+          gh release download qemu-android-linxr-1 \
+            --repo "${{ github.repository }}" \
+            --pattern "libq_zstd.so" \
+            --dir android/app/src/main/jniLibs/arm64-v8a
+
+          gh release download qemu-android-linxr-1 \
+            --repo "${{ github.repository }}" \
+            --pattern "libq_slirp.so" \
+            --dir android/app/src/main/jniLibs/arm64-v8a
+
+          gh release download qemu-android-linxr-1 \
+            --repo "${{ github.repository }}" \
             --pattern "base.qcow2.gz" \
             --dir android/app/src/main/assets/vm
 
