@@ -13,6 +13,36 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
+      - name: Download Linxr VM and QEMU assets
+        run: |
+          mkdir -p android/app/src/main/jniLibs/arm64-v8a
+          mkdir -p android/app/src/main/assets/vm
+
+          gh release download qemu-android-linxr-1 \
+            --repo "${{ github.repository }}" \
+            --pattern "libqemu.so" \
+            --dir android/app/src/main/jniLibs/arm64-v8a
+
+          gh release download qemu-android-linxr-1 \
+            --repo "${{ github.repository }}" \
+            --pattern "libqemu_img.so" \
+            --dir android/app/src/main/jniLibs/arm64-v8a
+
+          gh release download qemu-android-linxr-1 \
+            --repo "${{ github.repository }}" \
+            --pattern "base.qcow2.gz" \
+            --dir android/app/src/main/assets/vm
+
+          gh release download qemu-android-linxr-1 \
+            --repo "${{ github.repository }}" \
+            --pattern "vmlinuz-virt" \
+            --dir android/app/src/main/assets/vm
+
+          gh release download qemu-android-linxr-1 \
+            --repo "${{ github.repository }}" \
+            --pattern "initramfs-virt" \
+            --dir android/app/src/main/assets/vm
+
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
