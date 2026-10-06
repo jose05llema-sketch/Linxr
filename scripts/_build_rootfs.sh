@@ -447,6 +447,8 @@ chmod +x "${ROOTFS}/sbin/init"
 # â”€â”€ Build ext4 image (no loop mount needed) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 echo "--- Creating ${IMAGE_SIZE} ext4 image ---"
 mke2fs -t ext4 -d "${ROOTFS}" -L linxr /out/base.ext4 "${IMAGE_SIZE}"
+echo "--- Checking ext4 image ---"
+e2fsck -fy /out/base.ext4 || [ $? -le 1 ]
 
 echo "--- Converting to qcow2 ---"
 qemu-img convert -f raw -O qcow2 -c /out/base.ext4 /out/base.qcow2
