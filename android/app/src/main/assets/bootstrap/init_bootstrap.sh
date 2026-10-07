@@ -306,13 +306,11 @@ if command -v dockerd >/dev/null 2>&1; then
     mkdir -p /etc/docker
 
     # vfs: copy-on-write via plain directory copies — no kernel module needed.
-    # iptables=false, bridge=none: skip modules that don't exist in virt kernel.
+    # bridge + iptables enabled: modules are loaded below, iptables links fixed below.
     # registry-mirrors: use Chinese mirrors for faster image pulls over SLIRP.
     cat > /etc/docker/daemon.json <<'DOCKEREOF'
 {
   "storage-driver": "vfs",
-  "iptables": false,
-  "bridge": "none",
   "registry-mirrors": [
     "https://docker.m.daocloud.io",
     "https://mirror.ccs.tencentyun.com"
@@ -320,8 +318,28 @@ if command -v dockerd >/dev/null 2>&1; then
 }
 DOCKEREOF
 
-    # Clean any previous docker state from failed overlay2 attempts
-    rm -rf /var/lib/docker/* 2>/dev/null || true
+    # Load kernel modules for docker0 bridge and NAT (shipped as .ko.gz in the virt kernel)
+    for m in bridge veth br_netfilter ip_tables nf_nat; do
+        modprobe "$m" 2>/dev/null || true
+    done
+
+    # iptables-legacy installs under /usr/sbin; the default links point to a
+    # nonexistent /sbin/iptables-legacy, so dockerd could not create its NAT chain.
+    for p in iptables ip6tables; do
+        if [ -x /usr/sbin/$p-legacy ]; then
+            for d in /usr/sbin /sbin; do
+                ln -sf /usr/sbin/$p-legacy "$d/$p"
+                ln -sf /usr/sbin/$p-legacy-restore "$d/$p-restore"
+                ln -sf /usr/sbin/$p-legacy-save "$d/$p-save"
+            done
+        fi
+    done
+    sysctl -w net.ipv4.ip_forward=1 >/dev/null 2>&1 || true
+
+    # Only wipe leftovers of the old overlay2 attempts; keep images/containers across reboots.
+    if [ -d /var/lib/docker/overlay2 ]; then
+        rm -rf /var/lib/docker/* 2>/dev/null || true
+    fi
 
     # Clean up any stale docker/containerd processes and state/sockets
     pkill -9 dockerd || true
