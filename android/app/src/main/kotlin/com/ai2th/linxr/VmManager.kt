@@ -339,7 +339,7 @@ class VmManager(private val context: Context) {
             "user,id=net0," +
             "dns=1.1.1.1," +
             "dnssearch=lan," +
-            "hostfwd=tcp::2222-:22,hostfwd=tcp::7081-:7080"
+            "hostfwd=tcp::2222-:22,hostfwd=tcp::7081-:7080,hostfwd=tcp::8090-:8090"
         )
 
         if (isArm) {
