@@ -328,6 +328,24 @@ DOCKEREOF
     pkill -9 containerd || true
     rm -f /var/run/docker.pid /var/run/docker/containerd/containerd.pid /run/containerd/containerd.sock /var/run/docker.sock
 
+    # Alpine's docker-cli panics under TCG (runtime.doInit1). If /usr/bin/docker does not
+    # run, replace it with the official static client.
+    if ! timeout 20 docker --version >/dev/null 2>&1; then
+        echo "docker client broken, installing static client..."
+        if [ ! -x /root/bin/docker-static ]; then
+            mkdir -p /root/bin
+            if wget -q -O /tmp/docker-static.tgz https://download.docker.com/linux/static/stable/aarch64/docker-29.8.2.tgz; then
+                tar -xzf /tmp/docker-static.tgz -C /tmp docker/docker \
+                    && mv -f /tmp/docker/docker /root/bin/docker-static \
+                    && chmod +x /root/bin/docker-static
+            fi
+            rm -rf /tmp/docker-static.tgz /tmp/docker
+        fi
+        if [ -x /root/bin/docker-static ] && timeout 20 /root/bin/docker-static --version >/dev/null 2>&1; then
+            cp -f /root/bin/docker-static /usr/bin/docker.new && mv -f /usr/bin/docker.new /usr/bin/docker
+        fi
+    fi
+
     # Start containerd manually first to avoid dockerd timeout on slow TCG
     echo "Starting containerd daemon..."
     containerd >/var/log/containerd.log 2>&1 &
